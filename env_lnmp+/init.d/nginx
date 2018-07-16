@@ -1,0 +1,32 @@
+#!/bin/sh
+#chkconfig: - 85 15
+#description:nginx service
+ulimit -n 102400
+ulimit -u 10240
+
+NGINX_PATH=/program/app/nginx
+export NGINX_PATH
+
+case $1 in
+start)
+    echo 'Starting nginx...'
+    $NGINX_PATH/sbin/nginx
+;;
+reload)
+    echo 'Reloading nginx configuration...'
+    kill -HUP `cat $NGINX_PATH/logs/nginx.pid`
+;;
+stop)
+    echo 'Stopping nginx...'
+    kill -15 `cat $NGINX_PATH/logs/nginx.pid`
+;;
+list)
+    ps aux | egrep '(PID|nginx)'
+;;
+testconfig)
+    $NGINX_PATH/sbin/nginx -t
+;;
+*)
+
+echo "usage:`basename $0` {start|reload|stop|list|testconfig}"
+esac

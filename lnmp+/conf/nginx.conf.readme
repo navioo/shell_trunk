@@ -1,0 +1,184 @@
+#user nobody;
+#定义nginx运行的用户和组
+user www www;
+#nginx进程数，建议设置为cpu总核心数
+worker_processes auto;
+
+#全局日志级别定义类型，[debug|info|notice|warn|error|crit]
+#error_log logs/error.log;
+#error_log logs/error.log notice;
+#error_log logs/error.log info;
+
+#进程号保存文件
+#pid logs/nginx.pid;
+
+#指定进程可以打开的最大描述符数，理论上该值是最多打开文件数（ulimit -n）与nginx工作进程相除
+worker_rlimit_nofile 65535;
+
+
+#在nginx 0.7.66版本之后，有一个配置项chunked_transfer_encoding可以开启或者关闭chunk模式，默认是开启的
+#chunked_transfer_encoding on | off;
+
+events {
+	#参考事件模型：[kqueue|rtsig|epoll|/dev/poll|select|poll]
+	#是linux2.6版本以上内核中的高性能网络I/O模型，linux建议epoll，如果是FreeBSD则选用kqueue模型
+	use epoll;
+	#单个工作进程允许最大连接数，不小于worker_rlimit_nofile
+	#nginx最大连接数：maxClient = worker_processes * worker_connections
+	worker_connections 65535;
+}
+
+http {
+	#文件扩展名与文件类型映射表
+	include mime.types;
+	#默认文件类型
+	default_type application/octet-stream;
+	#默认编码
+	#charset utf-8;
+
+	#log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+	#				 '$status $body_bytes_sent "$http_referer" '
+	#				 '"$http_user_agent" "$http_x_forwarded_for"';
+
+	#access_log logs/access.log main;
+
+	#保存服务器名字的hash表大小
+	server_names_hash_buket_size 128;
+	#server_names_hash_max_size 128;
+	#客户端请求头部的缓冲区大小：设置为系统分页大小（getconf PAGESIZE）的整数倍
+	client_header_buffer_size 32k;
+	#客户端请求头缓冲大小
+	large_client_header_buffers 4 32k;
+	#设定通过nginx上传文件的大小限制
+	client_max_body_size 50m;   
+
+	#开启高效文件传输模式
+	sendfile on;
+	#是否允许使用socket的TCP_CORK的选项，只在sendfile开启下使用
+	tcp_nopush on;
+	#
+	tcp_nodelay on;
+
+	#是否开启目录列表访问，适合下载服务器，默认关闭
+	#autoindex on;
+
+	#keepalive超时时间，单位是秒
+	keepalive_timeout 65;
+
+	#FastCGI相关参数是为了改善网站的性能：减少资源占用，提高访问速度
+	fastcgi_connect_timeout 300;
+	fastcgi_send_timeout 300;
+	fastcgi_read_timeout 300;
+	fastcgi_buffer_size 64k;
+	fastcgi_buffers 4 64k;
+	fastcgi_busy_buffers_size 128k;
+	fastcgi_temp_file_write_size 128k;
+
+	#gzip模块设置
+	# 是否开启
+	gzip on;
+	# 最小压缩文件大小
+	gzip_min_length 1k;
+	# 压缩缓冲区大小
+	gzip_buffers 4 16k;
+	# 压缩版本（默认1.1，前端如果是squid2.5请使用1.0）
+	gzip_http_version 1.0;
+	#压缩等级
+	gzip_comp_level 2;
+	#要压缩的文件类型
+	gzip_types text/plain application/x-javascript text/css application/xml;
+	gzip_vary on;
+	gzip_disable "MSIE [1-6]\.";
+
+	server {
+		listen 80;
+		servername z.com www.z.com;
+
+		#access_log log/z.com.access.log main;
+
+		index index.html index.htm index.php;
+		root /program/www;
+
+		location / {
+ 			#设置访问网段
+            allow  192.168.1.0/24;
+            deny all;
+		}
+
+		location ~ \.php$ {
+			fastcgi_pass 127.0.0.1:9000;
+			include fastcgi.conf;
+		}
+
+		error_page 500 502 503 504 /50x.html;
+		error_page 404	/404.html;
+		location = /50x.html {
+		    root html/error;
+		}
+
+		#图片缓存时间设置
+        location ~ .*.(gif|jpg|jpeg|png|bmp|swf)$ {
+            expires 10d;
+        }
+
+        #JS和CSS缓存时间设置
+        location ~ .*.(js|css)?$ {
+            expires 1h;
+        }
+
+        #设定查看Nginx状态的地址
+        location /NginxStatus {
+            stub_status on;
+            access_log on;
+            auth_basic "NginxStatus";
+            auth_basic_user_file confpasswd;
+            #htpasswd文件的内容可以用apache提供的htpasswd工具来产生。
+        }
+
+        #本地动静分离反向代理配置
+        #所有jsp的页面均交由tomcat或resin处理
+        location ~ .(jsp|jspx|do)?$ {
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_pass http://127.0.0.1:8080;
+        }
+
+	}
+
+	server {
+		listen 443;
+		servername api.jfwlicai.com;
+
+		index index.html;
+		root /program/www;
+
+		ssl on;
+		ssl_certificate /program/app/nginx/sslkey/214261478800636.pem;
+        ssl_certificate_key /program/app/nginx/sslkey/214261478800636.key;
+        ssl_session_timeout 5m;
+        ssl_protocols SSLv2 SSLv3 TLSv1;
+        ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+        ssl_prefer_server_ciphers on;
+
+        location ~ \.php$ {
+        	fastcgi_pass 127.0.0.1:9000;
+        	include fastcgi.conf;
+        }
+	}
+
+	upstream lb.z.com {
+	    server 192.168.1.101 weight=5;
+	    server 192.168.1.102 weight=5;
+
+	    #负载均衡策略
+	    # 1.rr：轮询（默认）
+	    # 2.wrr：weight，按权重分配
+	    # 3.ip_hash：每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session问题
+	    # 4.fair（第三方）：按后端服务器的响应时间来分配请求，响应时间短的优先分配
+	    # 5.url_hash（第三方）按访问url的hash结果来分配请求，使每个url定向到同一个后端服务器，后端服务器为缓存时比较有效
+
+	}
+
+	include extra/*.conf;
+}

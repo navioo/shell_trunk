@@ -1,0 +1,10 @@
+1.上传lnmp+.zip压缩包到服务器根目录
+	yum install -y lrzsz
+	#rz lnmp+.zip
+2.解压lnmp+.zip到根目录
+	yum install -y zip unzip
+	#upzip lnmp+.zip
+3.授予lnmp+/init.sh可执行权限
+	chmod +x lnmp+/init.sh
+4.执行init.sh脚本
+	/lnmp+/init.sh
