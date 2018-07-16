@@ -6,7 +6,7 @@ mkdir -p $DATA_SAVE_PATH
 mv $NGINX_LOG_DIR/access.log $DATA_SAVE_PATH/$(date -d yesterday +%d).access.log
 mv $NGINX_LOG_DIR/error.log $DATA_SAVE_PATH/$(date -d yesterday +%d).error.log
 #touch $NGINX_LOG_DIR/access.log
-#向nginx主进程发送USR1信号，USR1信号是重新打开日志文件
+#鍚憂ginx涓昏繘绋嬪彂閫乁SR1淇″彿锛孶SR1淇″彿鏄噸鏂版墦寮�鏃ュ織鏂囦欢
 kill -USR1 `cat $NGINX_LOG_DIR/nginx.pid`
 
 

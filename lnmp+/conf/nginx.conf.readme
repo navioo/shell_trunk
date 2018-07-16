@@ -105,6 +105,14 @@ http {
             deny all;
 		}
 
+		location / {
+			#当访问的文件或目录不存在时，重定向到指定php文件
+			if (!-e $request_filename){
+				rewrite ^/(.*)$ index.php last; # => /program/wwwindex.php,重定向文件和root或者alias拼接
+			}
+
+		}
+
 		location ~ \.php$ {
 			fastcgi_pass 127.0.0.1:9000;
 			include fastcgi.conf;
