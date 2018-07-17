@@ -188,5 +188,28 @@ http {
 
 	}
 
+	#nginx upstrerm做负载均衡时，要用ip或远程主机名，不能用localhost
+	#consistent_hash
+	upstream memserver {
+		consistent_hash $request_uri;
+		server 192.168.1.214:11211;
+		server 192.168.1.214:11212;
+		server 192.168.1.214:11213;
+	}
+
+	server {
+		listen 80;
+		server_name localhost;
+
+		location / {
+			set $memcached_key $request_uri;
+			memcached_pass memserver;
+			#未命中缓存则执行回调文件
+			error_page 404 /callback.php;
+		}
+	}
+
+
+
 	include extra/*.conf;
 }
