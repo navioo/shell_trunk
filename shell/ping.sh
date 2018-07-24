@@ -31,3 +31,7 @@ ping_ip
 # 2> ： stderr错误输出
 # /dev/null ： 空设备文件
 # 2>&1 : 不能有空格，将标准错误输出重定向到标准输出
+
+#ping -c 2 -w 2 www.baidu.com >/dev/null 2>/dev/null
+#同ping -c 2 -w 2 www.baidu.com >/dev/null 2>&1
+#同ping -c 2 -w 2 www.baidu.com &>/dev/null
