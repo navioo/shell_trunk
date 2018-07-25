@@ -15,3 +15,6 @@ yesterday_s=$(date -d yesterday +%S)
 
 echo $year $month $day $hour $minute $second
 echo $yesterday_y $yesterday_m $yesterday_d $yesterday_h $yesterday_i $yesterday_s
+
+date +'%Y-%m-%d %H:%M:%S'
+#2018-07-19 01:38:20

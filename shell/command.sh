@@ -36,3 +36,30 @@ hello(){
 #or   source /etc/mylibs/hello.lib
 
 hello
+
+
+filename=/program/script/shell/tar.sh
+echo `basename $filename`	#tar.sh
+echo `dirname $filename`	#/program/script/shell
+
+
+#非交互式设置用户密码
+echo "test"|passwd test --stdin
+
+#yum install -y finger
+#[root@lite shell]# finger test
+#Login: test           			Name: 
+#Directory: /home/test               	Shell: /bin/bash
+#Never logged in.
+#No mail.
+#No Plan.
+
+
+#生成随机数
+[root@lite shell]# echo $RANDOM
+18517
+[root@lite shell]# echo $RANDOM|md5sum 
+95d795afa98af1985622fbef288baa24  -
+[root@lite shell]# echo $RANDOM|md5sum |cut -c 1-8
+16c202ba
+[root@lite shell]# 
