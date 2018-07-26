@@ -1,7 +1,6 @@
 #!/bin/sh
 
-#cat test.txt |
-#while read line
+#cat test.txt | while read line
 #do
 #    echo $line
 #    sleep 1
