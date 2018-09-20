@@ -63,3 +63,29 @@ echo "test"|passwd test --stdin
 [root@lite shell]# echo $RANDOM|md5sum |cut -c 1-8
 16c202ba
 [root@lite shell]# 
+
+
+#查找大小为0的文件并删除
+find ./ -type f -size 0 |xargs rm
+#or 文件过多会出现bug
+find ./ -type f -size 0 -exec rm
+#大于2k
+find ./ -type f -size +2k
+#小于2k
+find ./ -type f -size -2k
+#删除修改时间为7天以前的文件
+find ./ -type f -name "*.tar.gz" -mtime +7 |xargs rm
+
+
+[root@lite shell]# seq -w 10
+01
+02
+03
+04
+05
+06
+07
+08
+09
+10
+
